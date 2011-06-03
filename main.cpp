@@ -1,41 +1,26 @@
 /*
     PROGRAM: Monte Carlo Integration Calculator
-    AUTHOR: Sean Easton
+    AUTHOR: Sean Easton (gonrada@gmail.com)
     COURSE INFORMATION: CIS5930 - Summer '11
-    Due Date: <give date project is due>
+    Due Date: 
 
     SUMMARY
-        A brief description of what the program does. Usually one paragraph in length.
-
-    INPUT
-        Here describe the input format. Is it interactive or from a data file? If from a file,
-        what is the format of each line? How many data lines can be processed? Etc.
-
-        BAD DATA CHECKING:
-            If your program checks for data validity, describe here what is checked for and
-            how errors are handled.
-    OUTPUT
-        Here describe the output values and their format. If tables or other complex output is produced,
-        show an example.
-    DATA STRUCTURES
-        If any major data structures are used (arrays, strings, structures, classes, linked lists, etc.)
-        briefly describe them here and their role in the program.
-
-    ASSUMPTIONS
-        If any important assumptions are made, state them here.
-        These could include assumptions described in the project writeup,
-        as well as assumptions you decide to make.
+        This program will calculate integral using Monte Carlo methods.
+        It is the goal of the project to parallelize said methods with the hope
+        boosting overall performance.
 */
 
 #include "resources.h"
 
-using namespace mcm_intcalc;
-using std::cin;
+using namespace std;
+using boost::uniform_01;
 
-int main()
+int main(int argc, char **argv)
 {
+    boost::mt19937 ranSeed(static_cast<unsigned int>(std::time(0)));
+    uniform_01<boost::mt19937&> dist(ranSeed);
 
-
+    cout<< dist()<<" "<<dist()<<"\n";
 
     return 0;
 }
