@@ -11,15 +11,44 @@
 */
 
 #include "resources.h"
+#include "definitions.h"
 
 using namespace std;
 using boost::uniform_01;
 
+double F(double); // this will be the integral function
+
+void * compute_sum ( void * tPtr)
+{
+    struct tInfo tinf = (struct tInfo) tPtr;
+    unsigned long n = 0, i = 1;// number of random points
+    double nSum = 0, nSumSq = 0, err = 0, e = 1, r;
+
+    boost::mt19937 ranSeed(static_cast<unsigned int>(time(0)*tid));
+    uniform_01<boost::mt19937&> dist(ranSeed);
+
+    for(i=1; i < n; ++i)
+    {
+        r = dist(); // get a random value
+
+        fVal = F(-r*r); // makes a single call to the integral funtion
+        nSum += fVal;
+        nSumSq += fVal * fVal;
+
+
+        //http://math.fullerton.edu/mathews/n2003/montecarlomod.html
+
+    }
+
+
+
+}
+
 int main(int argc, char **argv)
 {
-    boost::mt19937 ranSeed(static_cast<unsigned int>(std::time(0)));
-    uniform_01<boost::mt19937&> dist(ranSeed);
-    unsigned int n = 0, i = 1;// number of random points
+//    boost::mt19937 ranSeed(static_cast<unsigned int>(std::time(0)));
+//    uniform_01<boost::mt19937&> dist(ranSeed);
+    unsigned long n = 0, i = 1;// number of random points
     double nSum = 0, nSumSq = 0, err = 0, e = 1, r;
     double lastPrint=1;
     double fHat, fSqHat;;
