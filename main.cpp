@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 
     if (argc == 3)
     {
-        if (strncmp(argv[1],"-e"))
+        if (strncmp(argv[1],"-e",2) == 0)
         {
             err = atof(argv[2]);
         }
@@ -39,12 +39,20 @@ int main(int argc, char **argv)
         n = 100000;
     }
 
-    for(int i=1; i != n && e > err; ++i)
+//    cout<<"got here; n:"<<n<<" err:"<<err<<endl;
+
+    for(int i=2; i != n && e > err; i+=2)
     {
         r = dist(); // get a random value
 
-        nSum = exp(-r*r);
-        nSumSq = nSum * nSum;
+        nSum += exp(-r*r);
+        nSumSq += exp(-r*r) * exp(-r*r);
+
+        r = dist(); // get a random value
+
+        nSum += exp(-r*r);
+        nSumSq += exp(-r*r) * exp(-r*r);
+
 
         //http://math.fullerton.edu/mathews/n2003/montecarlomod.html
 
@@ -53,7 +61,7 @@ int main(int argc, char **argv)
 
         e = sqrt((fSqHat-(fHat*fHat))/i);
 
-        cout<<i<<" random points; error :"<<e<<endl;
+        cout<<i<<" random points; error: "<<e<<endl;
     }
 
     return 0;
