@@ -19,8 +19,9 @@ int main(int argc, char **argv)
 {
     boost::mt19937 ranSeed(static_cast<unsigned int>(std::time(0)));
     uniform_01<boost::mt19937&> dist(ranSeed);
-    unsigned int n = 0, i; // number of random points
+    unsigned int n = 0, i = 1;// number of random points
     double nSum = 0, nSumSq = 0, err = 0, e = 1, r;
+    double lastPrint=1;
     double fHat, fSqHat;;
     time_t start, end;
 
@@ -44,13 +45,12 @@ int main(int argc, char **argv)
 
     start = time(0);
 
-    for(i=2; i != n && e > err; i+=2)
+    r = dist(); // get a random value
+    nSum += exp(-r*r);
+    nSumSq += exp(-r*r) * exp(-r*r);
+
+    for(i=2; i != n && e > err; ++i)
     {
-        r = dist(); // get a random value
-
-        nSum += exp(-r*r);
-        nSumSq += exp(-r*r) * exp(-r*r);
-
         r = dist(); // get a random value
 
         nSum += exp(-r*r);
@@ -64,12 +64,16 @@ int main(int argc, char **argv)
 
         e = sqrt((fSqHat-(fHat*fHat))/i);
 
-        //cout<<i<<" random points; error: "<<e<<endl;
+        if ((lastPrint - e) > err)
+        {
+            cout<<i<<" "<<e<<endl;
+            lastPrint = e;
+        }
     }
     end = time(0);
 
-    cout<<i<<" random points; error: "<<e<<endl;
-    cout<<"time elapsed:"<<end-start<<" sec.\n";
+    cerr<<i<<" random points; error: "<<e<<endl;
+    cerr<<"time elapsed:"<<end-start<<" sec.\n";
 
     return 0;
 }
