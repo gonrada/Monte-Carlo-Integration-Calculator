@@ -19,9 +19,10 @@ int main(int argc, char **argv)
 {
     boost::mt19937 ranSeed(static_cast<unsigned int>(std::time(0)));
     uniform_01<boost::mt19937&> dist(ranSeed);
-    unsigned int n = 0; // number of random points
+    unsigned int n = 0, i; // number of random points
     double nSum = 0, nSumSq = 0, err = 0, e = 1, r;
     double fHat, fSqHat;;
+    time_t start, end;
 
     if (argc == 3)
     {
@@ -41,7 +42,9 @@ int main(int argc, char **argv)
 
 //    cout<<"got here; n:"<<n<<" err:"<<err<<endl;
 
-    for(int i=2; i != n && e > err; i+=2)
+    start = time(0);
+
+    for(i=2; i != n && e > err; i+=2)
     {
         r = dist(); // get a random value
 
@@ -61,8 +64,12 @@ int main(int argc, char **argv)
 
         e = sqrt((fSqHat-(fHat*fHat))/i);
 
-        cout<<i<<" random points; error: "<<e<<endl;
+        //cout<<i<<" random points; error: "<<e<<endl;
     }
+    end = time(0);
+
+    cout<<i<<" random points; error: "<<e<<endl;
+    cout<<"time elapsed:"<<end-start<<" sec.\n";
 
     return 0;
 }
