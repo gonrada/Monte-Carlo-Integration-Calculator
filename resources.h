@@ -9,7 +9,7 @@
 
 //
 #include <iostream>
-
+#include <stdlib.h>
 //
 #include <pthread.h>
 
@@ -20,7 +20,7 @@
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
-
+#include <math.h>
 
 
 

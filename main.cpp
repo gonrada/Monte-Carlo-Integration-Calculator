@@ -19,8 +19,42 @@ int main(int argc, char **argv)
 {
     boost::mt19937 ranSeed(static_cast<unsigned int>(std::time(0)));
     uniform_01<boost::mt19937&> dist(ranSeed);
+    unsigned int n = 0; // number of random points
+    double nSum = 0, nSumSq = 0, err = 0, e = 1, r;
+    double fHat, fSqHat;;
 
-    cout<< dist()<<" "<<dist()<<"\n";
+    if (argc == 3)
+    {
+        if (strncmp(argv[1],"-e"))
+        {
+            err = atof(argv[2]);
+        }
+        else
+        {
+            n = static_cast<unsigned int>(atoi(argv[2]));
+        }
+    }
+    else
+    {
+        n = 100000;
+    }
+
+    for(int i=1; i != n && e > err; ++i)
+    {
+        r = dist(); // get a random value
+
+        nSum = exp(-r*r);
+        nSumSq = nSum * nSum;
+
+        //http://math.fullerton.edu/mathews/n2003/montecarlomod.html
+
+        fHat = nSum / i;
+        fSqHat = nSumSq / i;
+
+        e = sqrt((fSqHat-(fHat*fHat))/i);
+
+        cout<<i<<" random points; error :"<<e<<endl;
+    }
 
     return 0;
 }
