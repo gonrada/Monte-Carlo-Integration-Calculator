@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 {
     boost::mt19937 ranSeed(static_cast<unsigned int>(std::time(0)));
     uniform_01<boost::mt19937&> dist(ranSeed);
-    unsigned int n = 0, i = 1;// number of random points
+    uint64_t n = 0, i = 1;// number of random points
     double nSum = 0, nSumSq = 0, err = 0, e = 1, r;
     double lastPrint=1;
     double fHat, fSqHat;;

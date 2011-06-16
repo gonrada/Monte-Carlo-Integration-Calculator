@@ -10,95 +10,108 @@
         boosting overall performance.
 */
 
-#include "resources.h"
-#include "definitions.h"
+#include <iostream>
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
+#include <ctime>
+#include <boost/random/uniform_01.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <math.h>
 
 using namespace std;
 using boost::uniform_01;
-
-double F(double); // this will be the integral function
-
-void * compute_sum ( void * tPtr)
-{
-    struct tInfo tinf = (struct tInfo) tPtr;
-    unsigned long n = 0, i = 1;// number of random points
-    double nSum = 0, nSumSq = 0, err = 0, e = 1, r;
-
-    boost::mt19937 ranSeed(static_cast<unsigned int>(time(0)*tid));
-    uniform_01<boost::mt19937&> dist(ranSeed);
-
-    for(i=1; i < n; ++i)
-    {
-        r = dist(); // get a random value
-
-        fVal = F(-r*r); // makes a single call to the integral funtion
-        nSum += fVal;
-        nSumSq += fVal * fVal;
+using boost::mt19937;
 
 
-        //http://math.fullerton.edu/mathews/n2003/montecarlomod.html
+/*
+ *  Definitions
+ */
+#define NUMTHREADS 4
+enum mode { points, error};
 
-    }
+/*
+ *  Global Variables
+ */
+double * tSum, tSumSq;
+uint64_t * tNumPnts; // number on random points each thread is to try
 
+/* 
+ *  Function Prototypes
+ */
+    // this will be the integrand function
+inline double integrand(double x) { return exp(-x*x); };
+void * compute_sum(void *);
 
-
-}
 
 int main(int argc, char **argv)
 {
-//    boost::mt19937 ranSeed(static_cast<unsigned int>(std::time(0)));
-//    uniform_01<boost::mt19937&> dist(ranSeed);
-    unsigned long n = 0, i = 1;// number of random points
-    double nSum = 0, nSumSq = 0, err = 0, e = 1, r;
-    double lastPrint=1;
-    double fHat, fSqHat;;
+    bool okToStop = false;
+    double err, tSum, tSumSq;
+    mode opMode;
+    pthread_t thread_ids[NUMTHREADS];
     time_t start, end;
+    uint64_t n = 1,i;
+    
+
+    tSum = new double[NUMTHREADS];
+    tSumSp = new double[NUMTHREADS];
+    tNumPnts = new uint64_t[NUMTHREADS];
 
     if (argc == 3)
     {
-        if (strncmp(argv[1],"-e",2) == 0)
+        if (strncmp(argv[1],"-n",2) == 0)
+        {
+            n = static_cast<unsigned int>(atoi(argv[2]));
+            opMode = points;
+        }
+        else if (strncmp(argv[1],"-e",2) == 0)
         {
             err = atof(argv[2]);
+            opMode = error;
         }
         else
         {
-            n = static_cast<unsigned int>(atoi(argv[2]));
+            n = 100000;
+            opMode = points;
         }
     }
     else
     {
         n = 100000;
+        opMode = points;
     }
 
-//    cout<<"got here; n:"<<n<<" err:"<<err<<endl;
 
     start = time(0);
-
-    r = dist(); // get a random value
-    nSum += exp(-r*r);
-    nSumSq += exp(-r*r) * exp(-r*r);
-
-    for(i=2; i != n && e > err; ++i)
+    do
     {
-        r = dist(); // get a random value
-
-        nSum += exp(-r*r);
-        nSumSq += exp(-r*r) * exp(-r*r);
-
-
-        //http://math.fullerton.edu/mathews/n2003/montecarlomod.html
-
-        fHat = nSum / i;
-        fSqHat = nSumSq / i;
-
-        e = sqrt((fSqHat-(fHat*fHat))/i);
-
-        if ((lastPrint - e) > err)
+        if(opMode == error)
         {
-            cout<<i<<" "<<e<<endl;
-            lastPrint = e;
+            n = n*(10*NUMTHREADS);
+            for(int t=0; t < NUMTHREADS; ++t)
+                tNumPnts[t] = n/NUMTHREADS; 
         }
-    }
+        else
+        {
+            
+        }
+
+        for(int t=0; t < NUMTHREADS; ++t)
+            pthread_create(&thread_ids[t], NULL, compute_sum, (void*) &t);
+
+        for(int t=0; t < NUMTHREADS; ++t)
+            pthread_join(thread_ids[t], NULL);
+
+        if(opMode == points)
+        {
+
+        }
+        else
+        {
+
+        }
+    } while(!okToStop);
     end = time(0);
 
     cout<<i<<" "<<e<<endl;
@@ -106,4 +119,19 @@ int main(int argc, char **argv)
     cerr<<"time elapsed:"<<end-start<<" sec.\n";
 
     return 0;
+}
+
+void * compute_sum ( void * tPtr)
+{
+    int tid = *(int *) tPtr;
+
+    mt19937 ranSeed(static_cast<unsigned int>(time(0)* (tid+1)));
+    uniform_01<mt19937&> distNumGen(ranSeed);
+
+    for(i=0; i < n; ++i)
+    {
+        fVal = integrand(distNumGen()); // makes a single call to the integral funtion
+        tSum[tid] += fVal;
+        tSumSq[tid] += fVal * fVal;
+    }
 }
