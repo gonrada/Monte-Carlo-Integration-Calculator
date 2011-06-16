@@ -33,29 +33,29 @@ enum mode { points, error};
 /*
  *  Global Variables
  */
-double * tSum, tSumSq;
+double * tSum, * tSumSq;
 uint64_t * tNumPnts; // number on random points each thread is to try
 
 /* 
  *  Function Prototypes
  */
     // this will be the integrand function
-inline double integrand(double x) { return exp(-x*x); };
+inline double integrand(double x) { return exp(-x*x); }
 void * compute_sum(void *);
 
 
 int main(int argc, char **argv)
 {
     bool okToStop = false;
-    double err, tSum, tSumSq;
+    double e=1, err=0, nSum=0, nSumSq=0, fHat,fSqHat;
     mode opMode;
     pthread_t thread_ids[NUMTHREADS];
     time_t start, end;
-    uint64_t n = 1,i;
+    uint64_t i=0, n=1;
     
 
     tSum = new double[NUMTHREADS];
-    tSumSp = new double[NUMTHREADS];
+    tSumSq = new double[NUMTHREADS];
     tNumPnts = new uint64_t[NUMTHREADS];
 
     if (argc == 3)
@@ -94,22 +94,43 @@ int main(int argc, char **argv)
         }
         else
         {
-            
+            for(int t=0; t < NUMTHREADS; ++t)
+                tNumPnts[t] = n/NUMTHREADS;
+            tNumPnts[0] += (n - (NUMTHREADS * tNumPnts[0]));
         }
 
         for(int t=0; t < NUMTHREADS; ++t)
-            pthread_create(&thread_ids[t], NULL, compute_sum, (void*) &t);
+        {
+            int * tid = new int(t);
+            if(tNumPnts[t] > 0)
+                pthread_create(&thread_ids[t], NULL, compute_sum, (void*) tid);
+        }
 
         for(int t=0; t < NUMTHREADS; ++t)
-            pthread_join(thread_ids[t], NULL);
+            if(tNumPnts[t] > 0)
+                pthread_join(thread_ids[t], NULL);
 
-        if(opMode == points)
+        i += n;
+        for(int t=0; t < NUMTHREADS; ++t)
         {
-
+            nSum += tSum[t];
+            nSumSq += tSumSq[t];
+            tSum[t] = tSumSq[t] = 0;
         }
-        else
-        {
+        fHat = nSum / i;
+        fSqHat = nSumSq / i;
 
+        e = sqrt((fSqHat-(fHat*fHat))/i);
+
+
+        if(opMode == error)
+        {
+            if( e <= err)
+                okToStop = true;       
+        }
+        else // opMode == points
+        {
+            okToStop = true; // we have finished all points
         }
     } while(!okToStop);
     end = time(0);
@@ -124,14 +145,18 @@ int main(int argc, char **argv)
 void * compute_sum ( void * tPtr)
 {
     int tid = *(int *) tPtr;
-
+    double fVal=0;
+    
     mt19937 ranSeed(static_cast<unsigned int>(time(0)* (tid+1)));
     uniform_01<mt19937&> distNumGen(ranSeed);
 
-    for(i=0; i < n; ++i)
+//    cout<<"T:"<<tid<<" n:"<<tNumPnts[tid]<<"\n";
+    for(uint64_t i=0; i < tNumPnts[tid]; ++i)
     {
         fVal = integrand(distNumGen()); // makes a single call to the integral funtion
         tSum[tid] += fVal;
         tSumSq[tid] += fVal * fVal;
+//        cout<<"T:"<<tid<<" n:"<<tNumPnts[tid]<<" f:"<<fVal<<" sum:"<<tSum[tid]<<endl;
     }
+    return NULL;
 }
