@@ -47,11 +47,11 @@ void * compute_sum(void *);
 int main(int argc, char **argv)
 {
     bool okToStop = false;
-    double e=1, err=0, nSum=0, nSumSq=0, fHat,fSqHat;
+    double err_achieved=0.1, err_desired=0, nSum=0, nSumSq=0, fHat,fSqHat;
     mode opMode;
     pthread_t thread_ids[NUMTHREADS];
     time_t start, end;
-    uint64_t i=0, n=1;
+    uint64_t i=0, n=NUMTHREADS;
     
 
     tSum = new double[NUMTHREADS];
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
         }
         else if (strncmp(argv[1],"-e",2) == 0)
         {
-            err = atof(argv[2]);
+            err_desired = atof(argv[2]);
             opMode = error;
         }
         else
@@ -88,9 +88,12 @@ int main(int argc, char **argv)
     {
         if(opMode == error)
         {
-            n = n*(10*NUMTHREADS);
+            //n = n * (100 * (1 - (err_desired / err_achieved)));
+            n = (err_achieved / err_desired) >= 0.1 ? (n * 100) : (n * ((err_achieved / err_desired) / 0.1));
+        
             for(int t=0; t < NUMTHREADS; ++t)
-                tNumPnts[t] = n/NUMTHREADS; 
+                tNumPnts[t] = n/NUMTHREADS;
+            tNumPnts[0] += (n - (NUMTHREADS * tNumPnts[0]));
         }
         else
         {
@@ -120,12 +123,11 @@ int main(int argc, char **argv)
         fHat = nSum / i;
         fSqHat = nSumSq / i;
 
-        e = sqrt((fSqHat-(fHat*fHat))/i);
-
+        err_achieved = sqrt((fSqHat-(fHat*fHat))/i);
 
         if(opMode == error)
         {
-            if( e <= err)
+            if(err_achieved <= err_desired) // if the achieved err is < 
                 okToStop = true;       
         }
         else // opMode == points
@@ -135,8 +137,7 @@ int main(int argc, char **argv)
     } while(!okToStop);
     end = time(0);
 
-    cout<<i<<" "<<e<<endl;
-    cerr<<i<<" random points; error:"<<e<<endl;
+    cerr<<i<<" random points; error:"<<err_achieved<<endl;
     cerr<<"time elapsed:"<<end-start<<" sec.\n";
 
     return 0;
