@@ -107,6 +107,7 @@ int main(int argc, char **argv)
             int * tid = new int(t);
             if(tNumPnts[t] > 0)
                 pthread_create(&thread_ids[t], NULL, compute_sum, (void*) tid);
+            delete(tid);
         }
 
         for(int t=0; t < NUMTHREADS; ++t)
@@ -136,11 +137,11 @@ int main(int argc, char **argv)
         }
     } while(!okToStop);
     end = time(0);
-
+    cerr<<"Value:"<<fHat<<endl;
     cerr<<i<<" random points; error:"<<err_achieved<<endl;
     cerr<<"time elapsed:"<<end-start<<" sec.\n";
 
-    return 0;
+    return ;
 }
 
 void * compute_sum ( void * tPtr)
@@ -151,13 +152,11 @@ void * compute_sum ( void * tPtr)
     mt19937 ranSeed(static_cast<unsigned int>(time(0)* (tid+1)));
     uniform_01<mt19937&> distNumGen(ranSeed);
 
-//    cout<<"T:"<<tid<<" n:"<<tNumPnts[tid]<<"\n";
     for(uint64_t i=0; i < tNumPnts[tid]; ++i)
     {
         fVal = integrand(distNumGen()); // makes a single call to the integral funtion
         tSum[tid] += fVal;
         tSumSq[tid] += fVal * fVal;
-//        cout<<"T:"<<tid<<" n:"<<tNumPnts[tid]<<" f:"<<fVal<<" sum:"<<tSum[tid]<<endl;
     }
     return NULL;
 }
