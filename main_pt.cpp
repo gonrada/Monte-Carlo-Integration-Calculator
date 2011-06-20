@@ -27,7 +27,7 @@ using boost::mt19937;
 /*
  *  Definitions
  */
-#define NUMTHREADS 4
+#define NUMTHREADS 2
 enum mode { points, error};
 
 /*
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     {
         if (strncmp(argv[1],"-n",2) == 0)
         {
-            n = static_cast<unsigned int>(atoi(argv[2]));
+            n = static_cast<uint64_t>(atof(argv[2]));
             opMode = points;
         }
         else if (strncmp(argv[1],"-e",2) == 0)
@@ -89,8 +89,9 @@ int main(int argc, char **argv)
         if(opMode == error)
         {
             //n = n * (100 * (1 - (err_desired / err_achieved)));
-            n = (err_achieved / err_desired) >= 0.1 ? (n * 100) : (n * ((err_achieved / err_desired) / 0.1));
-        
+            n = (err_achieved / err_desired) >= 0.1 ? (n * 100) : (n * 1.1);
+
+            cout<<"n:"<<n<<endl;        
             for(int t=0; t < NUMTHREADS; ++t)
                 tNumPnts[t] = n/NUMTHREADS;
             tNumPnts[0] += (n - (NUMTHREADS * tNumPnts[0]));
@@ -141,7 +142,7 @@ int main(int argc, char **argv)
     cerr<<i<<" random points; error:"<<err_achieved<<endl;
     cerr<<"time elapsed:"<<end-start<<" sec.\n";
 
-    return ;
+    return 0;
 }
 
 void * compute_sum ( void * tPtr)

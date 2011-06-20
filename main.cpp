@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            n = static_cast<unsigned int>(atoi(argv[2]));
+            n = static_cast<uint64_t>(atof(argv[2]));
         }
     }
     else
@@ -64,15 +64,15 @@ int main(int argc, char **argv)
 
         e = sqrt((fSqHat-(fHat*fHat))/i);
 
-        if ((lastPrint - e) > err)
+        /*if ((lastPrint - e) > err)
         {
             cout<<i<<" "<<e<<endl;
             lastPrint = e;
-        }
+        }*/
     }
     end = time(0);
 
-    cout<<i<<" "<<e<<endl;
+//    cout<<i<<" "<<e<<endl;
     cerr<<i<<" random points; error:"<<e<<endl;
     cerr<<"time elapsed:"<<end-start<<" sec.\n";
 
